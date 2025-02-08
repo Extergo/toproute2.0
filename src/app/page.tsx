@@ -19,17 +19,15 @@ export default function HomePage() {
   const [result, setResult] = useState<RecommendationResult | null>(null);
   const [error, setError] = useState<string>("");
 
-  // Handle location selection from the Map component.
+  // Use the full locations object to avoid unused variable warnings.
   const handleLocationsSelect = (locations: {
     house: { lat: number; lng: number };
     workplace: { lat: number; lng: number };
     holiday: { lat: number; lng: number };
-  }) => {
+  }): void => {
     try {
       const recommendation = recommendVehicles({
-        house: locations.house,
-        workplace: locations.workplace,
-        holiday: locations.holiday,
+        ...locations,
         minSeats,
         habits: { hasKids, trunkPreference },
       });

@@ -40,13 +40,11 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
   >([]);
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  // When the map loads, store a reference to it.
-  const onMapLoad = (map: google.maps.Map) => {
+  const onMapLoad = (map: google.maps.Map): void => {
     mapRef.current = map;
   };
 
-  // Handle user clicks to add up to three points.
-  const handleMapClick = (event: google.maps.MapMouseEvent) => {
+  const handleMapClick = (event: google.maps.MapMouseEvent): void => {
     if (!event.latLng) return;
     const newPoint: Point = {
       lat: event.latLng.lat(),
@@ -65,7 +63,41 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
     }
   };
 
-  // When the first two points are set, request directions and search for nearby EV charging stations.
+  const handleDirectionsResult = (
+    result: google.maps.DirectionsResult | null,
+    status: google.maps.DirectionsStatus
+  ): void => {
+    if (status === "OK" && result) {
+      setDirections(result);
+      if (result.routes[0] && result.routes[0].legs.length > 0) {
+        const leg = result.routes[0].legs[0];
+        const midLat = (leg.start_location.lat() + leg.end_location.lat()) / 2;
+        const midLng = (leg.start_location.lng() + leg.end_location.lng()) / 2;
+        const midpoint = new google.maps.LatLng(midLat, midLng);
+        if (mapRef.current) {
+          const service = new google.maps.places.PlacesService(mapRef.current);
+          const request: google.maps.places.PlaceSearchRequest = {
+            location: midpoint,
+            radius: 5000, // 5 km radius
+            type: "electric_vehicle_charging_station",
+          };
+          service.nearbySearch(request, handleNearbySearchResult);
+        }
+      }
+    } else {
+      console.error("Directions request failed due to: " + status);
+    }
+  };
+
+  const handleNearbySearchResult = (
+    results: google.maps.places.PlaceResult[] | null,
+    status: google.maps.places.PlacesServiceStatus
+  ): void => {
+    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+      setEvStations(results);
+    }
+  };
+
   useEffect(() => {
     if (points.length >= 2 && mapRef.current) {
       const directionsService = new google.maps.DirectionsService();
@@ -75,54 +107,12 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
           destination: points[1],
           travelMode: google.maps.TravelMode.DRIVING,
         },
-        (
-          result: google.maps.DirectionsResult | null,
-          status: google.maps.DirectionsStatus
-        ) => {
-          if (status === "OK" && result) {
-            setDirections(result);
-            if (result.routes[0] && result.routes[0].legs.length > 0) {
-              const leg = result.routes[0].legs[0];
-              const midLat =
-                (leg.start_location.lat() + leg.end_location.lat()) / 2;
-              const midLng =
-                (leg.start_location.lng() + leg.end_location.lng()) / 2;
-              const midpoint = new google.maps.LatLng(midLat, midLng);
-              // Extract the current map instance so it's not null.
-              const currentMap = mapRef.current;
-              const service = new google.maps.places.PlacesService(
-                currentMap as any
-              );
-              const request: google.maps.places.PlaceSearchRequest = {
-                location: midpoint,
-                radius: 5000, // 5 km radius
-                type: "electric_vehicle_charging_station",
-              };
-              service.nearbySearch(
-                request,
-                (
-                  results: google.maps.places.PlaceResult[] | null,
-                  status: google.maps.places.PlacesServiceStatus
-                ) => {
-                  if (
-                    status === google.maps.places.PlacesServiceStatus.OK &&
-                    results
-                  ) {
-                    setEvStations(results);
-                  }
-                }
-              );
-            }
-          } else {
-            console.error("Directions request failed due to: " + status);
-          }
-        }
+        handleDirectionsResult
       );
     }
   }, [points]);
 
-  // Reset all points and clear directions/EV results.
-  const resetPoints = () => {
+  const resetPoints = (): void => {
     setPoints([]);
     setDirections(null);
     setEvStations([]);

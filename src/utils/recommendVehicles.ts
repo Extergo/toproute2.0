@@ -1,3 +1,4 @@
+// src/utils/recommendVehicles.ts
 import { cars, Car } from "../data/cars";
 
 export interface RecommendationInput {
@@ -29,11 +30,11 @@ export const recommendVehicles = (
     throw new Error("Not enough location data to provide a recommendation.");
   }
 
-  const toRad = (x: number) => (x * Math.PI) / 180;
+  const toRad = (x: number): number => (x * Math.PI) / 180;
   const computeDistance = (
     p1: { lat: number; lng: number },
     p2: { lat: number; lng: number }
-  ) => {
+  ): number => {
     const R = 6371; // Earth's radius in km
     const dLat = toRad(p2.lat - p1.lat);
     const dLng = toRad(p2.lng - p1.lng);
@@ -50,8 +51,7 @@ export const recommendVehicles = (
   const holidayDistance = computeDistance(input.house, input.holiday);
   const totalDistance = commuteDistance + holidayDistance;
 
-  // Filter vehicles based on seating and range.
-  let suitableCars = cars.filter(
+  const suitableCars = cars.filter(
     (car) => car.seats >= input.minSeats && car.range >= totalDistance
   );
 
@@ -61,18 +61,15 @@ export const recommendVehicles = (
     );
   }
 
-  // Sort vehicles by range descending.
   suitableCars.sort((a, b) => b.range - a.range);
 
   const primary = suitableCars[0];
   const runnerUp = suitableCars[1] || suitableCars[0];
 
-  // Simulate a price breakdown (cost per km factor).
   const costFactor = 0.2;
   const primaryCost = totalDistance * costFactor;
   const runnerUpCost = totalDistance * costFactor * 1.1;
 
-  // Determine a carbon rating based on vehicle type.
   let carbonRating = 1;
   if (primary.type === "electric") {
     carbonRating = 5;
