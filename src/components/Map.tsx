@@ -32,24 +32,26 @@ const center = {
 };
 
 const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
-  // Store the three user-selected points.
   const [points, setPoints] = useState<Point[]>([]);
-  // Store the directions result from the Directions API.
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
-  // Store any found EV charging stations.
   const [evStations, setEvStations] = useState<
     google.maps.places.PlaceResult[]
   >([]);
   const mapRef = useRef<google.maps.Map | null>(null);
 
+  // When the map loads, store a reference to it.
   const onMapLoad = (map: google.maps.Map) => {
     mapRef.current = map;
   };
 
+  // Handle user clicks to add up to three points.
   const handleMapClick = (event: google.maps.MapMouseEvent) => {
     if (!event.latLng) return;
-    const newPoint = { lat: event.latLng.lat(), lng: event.latLng.lng() };
+    const newPoint: Point = {
+      lat: event.latLng.lat(),
+      lng: event.latLng.lng(),
+    };
     if (points.length < 3) {
       const newPoints = [...points, newPoint];
       setPoints(newPoints);
@@ -63,7 +65,7 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
     }
   };
 
-  // Compute the route from House to Workplace once the first two points are set.
+  // When the first two points are set, request directions and then search for nearby EV charging stations.
   useEffect(() => {
     if (points.length >= 2 && mapRef.current) {
       const directionsService = new google.maps.DirectionsService();
@@ -74,9 +76,8 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
           travelMode: google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK && result) {
+          if (status === "OK" && result) {
             setDirections(result);
-            // Search for EV charging stations near the midpoint of the route.
             if (result.routes[0] && result.routes[0].legs.length > 0) {
               const leg = result.routes[0].legs[0];
               const midLat =
@@ -84,31 +85,31 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
               const midLng =
                 (leg.start_location.lng() + leg.end_location.lng()) / 2;
               const midpoint = new google.maps.LatLng(midLat, midLng);
+              // Explicitly extract the current map instance so it's not null.
+              const currentMap = mapRef.current;
               const service = new google.maps.places.PlacesService(
-                mapRef.current!
+                currentMap as any
               );
               const request: google.maps.places.PlaceSearchRequest = {
                 location: midpoint,
-                radius: 5000, // 5 km radius (adjust as needed)
-                type: ["electric_vehicle_charging_station"],
+                radius: 5000, // 5 km radius
+                type: "electric_vehicle_charging_station",
               };
               service.nearbySearch(request, (results, status) => {
-                if (
-                  status === google.maps.places.PlacesServiceStatus.OK &&
-                  results
-                ) {
+                if (status === "OK" && results) {
                   setEvStations(results);
                 }
               });
             }
           } else {
-            console.error("Directions request failed due to " + status);
+            console.error("Directions request failed due to: " + status);
           }
         }
       );
     }
   }, [points]);
 
+  // Reset all points and clear directions/EV results.
   const resetPoints = () => {
     setPoints([]);
     setDirections(null);

@@ -1,4 +1,3 @@
-// src/utils/recommendVehicles.ts
 import { cars, Car } from "../data/cars";
 
 export interface RecommendationInput {
@@ -51,7 +50,7 @@ export const recommendVehicles = (
   const holidayDistance = computeDistance(input.house, input.holiday);
   const totalDistance = commuteDistance + holidayDistance;
 
-  // Filter vehicles that meet the seating requirement and can cover the total distance.
+  // Filter vehicles based on seating and range.
   let suitableCars = cars.filter(
     (car) => car.seats >= input.minSeats && car.range >= totalDistance
   );
@@ -68,12 +67,12 @@ export const recommendVehicles = (
   const primary = suitableCars[0];
   const runnerUp = suitableCars[1] || suitableCars[0];
 
-  // Simulated price breakdown: cost per km factor.
+  // Simulate a price breakdown (cost per km factor).
   const costFactor = 0.2;
   const primaryCost = totalDistance * costFactor;
   const runnerUpCost = totalDistance * costFactor * 1.1;
 
-  // Environmental (carbon) rating based on vehicle type.
+  // Determine a carbon rating based on vehicle type.
   let carbonRating = 1;
   if (primary.type === "electric") {
     carbonRating = 5;

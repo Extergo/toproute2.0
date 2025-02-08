@@ -54,7 +54,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-r from-blue-100 to-green-100 flex flex-col items-center p-6">
+    <main className="container min-h-screen bg-gradient-to-r from-blue-100 to-green-100 flex flex-col items-center p-6">
       <div className="max-w-3xl w-full bg-white shadow-lg rounded-lg p-8">
         <h1 className="text-4xl font-bold text-center mb-8">
           Advanced Vehicle Recommender
