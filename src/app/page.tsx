@@ -10,33 +10,21 @@ import {
 const Map = dynamic(() => import("../components/Map"), { ssr: false });
 
 export default function HomePage() {
-  // User preference states
+  // User Preferences
   const [minSeats, setMinSeats] = useState<number>(5);
   const [hasKids, setHasKids] = useState<boolean>(false);
   const [trunkPreference, setTrunkPreference] = useState<boolean>(false);
-
-  // Location points for House, Workplace, and Holiday
-  const [house, setHouse] = useState<{ lat: number; lng: number } | null>(null);
-  const [workplace, setWorkplace] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [holiday, setHoliday] = useState<{ lat: number; lng: number } | null>(
-    null
-  );
 
   // Recommendation result and error state
   const [result, setResult] = useState<RecommendationResult | null>(null);
   const [error, setError] = useState<string>("");
 
+  // Handle location selection from the Map component.
   const handleLocationsSelect = (locations: {
     house: { lat: number; lng: number };
     workplace: { lat: number; lng: number };
     holiday: { lat: number; lng: number };
   }) => {
-    setHouse(locations.house);
-    setWorkplace(locations.workplace);
-    setHoliday(locations.holiday);
     try {
       const recommendation = recommendVehicles({
         house: locations.house,
@@ -47,14 +35,18 @@ export default function HomePage() {
       });
       setResult(recommendation);
       setError("");
-    } catch (e: any) {
-      setResult(null);
-      setError(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setResult(null);
+        setError(e.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     }
   };
 
   return (
-    <main className="container min-h-screen bg-gradient-to-r from-blue-100 to-green-100 flex flex-col items-center p-6">
+    <main className="min-h-screen bg-gradient-to-r from-blue-100 to-green-100 flex flex-col items-center p-6">
       <div className="max-w-3xl w-full bg-white shadow-lg rounded-lg p-8">
         <h1 className="text-4xl font-bold text-center mb-8">
           Advanced Vehicle Recommender

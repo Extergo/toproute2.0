@@ -65,7 +65,7 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
     }
   };
 
-  // When the first two points are set, request directions and then search for nearby EV charging stations.
+  // When the first two points are set, request directions and search for nearby EV charging stations.
   useEffect(() => {
     if (points.length >= 2 && mapRef.current) {
       const directionsService = new google.maps.DirectionsService();
@@ -75,7 +75,10 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
           destination: points[1],
           travelMode: google.maps.TravelMode.DRIVING,
         },
-        (result, status) => {
+        (
+          result: google.maps.DirectionsResult | null,
+          status: google.maps.DirectionsStatus
+        ) => {
           if (status === "OK" && result) {
             setDirections(result);
             if (result.routes[0] && result.routes[0].legs.length > 0) {
@@ -85,7 +88,7 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
               const midLng =
                 (leg.start_location.lng() + leg.end_location.lng()) / 2;
               const midpoint = new google.maps.LatLng(midLat, midLng);
-              // Explicitly extract the current map instance so it's not null.
+              // Extract the current map instance so it's not null.
               const currentMap = mapRef.current;
               const service = new google.maps.places.PlacesService(
                 currentMap as any
@@ -95,11 +98,20 @@ const Map: React.FC<MapProps> = ({ onLocationsSelect }) => {
                 radius: 5000, // 5 km radius
                 type: "electric_vehicle_charging_station",
               };
-              service.nearbySearch(request, (results, status) => {
-                if (status === "OK" && results) {
-                  setEvStations(results);
+              service.nearbySearch(
+                request,
+                (
+                  results: google.maps.places.PlaceResult[] | null,
+                  status: google.maps.places.PlacesServiceStatus
+                ) => {
+                  if (
+                    status === google.maps.places.PlacesServiceStatus.OK &&
+                    results
+                  ) {
+                    setEvStations(results);
+                  }
                 }
-              });
+              );
             }
           } else {
             console.error("Directions request failed due to: " + status);
