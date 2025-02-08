@@ -1,101 +1,195 @@
-import Image from "next/image";
+// src/app/page.tsx
+"use client";
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import {
+  recommendVehicles,
+  RecommendationResult,
+} from "../utils/recommendVehicles";
 
-export default function Home() {
+const Map = dynamic(() => import("../components/Map"), { ssr: false });
+
+export default function HomePage() {
+  // User preference states
+  const [minSeats, setMinSeats] = useState<number>(5);
+  const [hasKids, setHasKids] = useState<boolean>(false);
+  const [trunkPreference, setTrunkPreference] = useState<boolean>(false);
+
+  // Location points for House, Workplace, and Holiday
+  const [house, setHouse] = useState<{ lat: number; lng: number } | null>(null);
+  const [workplace, setWorkplace] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [holiday, setHoliday] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
+
+  // Recommendation result and error state
+  const [result, setResult] = useState<RecommendationResult | null>(null);
+  const [error, setError] = useState<string>("");
+
+  const handleLocationsSelect = (locations: {
+    house: { lat: number; lng: number };
+    workplace: { lat: number; lng: number };
+    holiday: { lat: number; lng: number };
+  }) => {
+    setHouse(locations.house);
+    setWorkplace(locations.workplace);
+    setHoliday(locations.holiday);
+    try {
+      const recommendation = recommendVehicles({
+        house: locations.house,
+        workplace: locations.workplace,
+        holiday: locations.holiday,
+        minSeats,
+        habits: { hasKids, trunkPreference },
+      });
+      setResult(recommendation);
+      setError("");
+    } catch (e: any) {
+      setResult(null);
+      setError(e.message);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <main className="min-h-screen bg-gradient-to-r from-blue-100 to-green-100 flex flex-col items-center p-6">
+      <div className="max-w-3xl w-full bg-white shadow-lg rounded-lg p-8">
+        <h1 className="text-4xl font-bold text-center mb-8">
+          Advanced Vehicle Recommender
+        </h1>
+        {/* User Preferences */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Minimum Seats Needed
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={minSeats}
+              onChange={(e) => setMinSeats(parseInt(e.target.value, 10))}
+              className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <div className="flex items-center">
+            <label className="inline-flex items-center">
+              <input
+                type="checkbox"
+                checked={hasKids}
+                onChange={(e) => setHasKids(e.target.checked)}
+                className="form-checkbox"
+              />
+              <span className="ml-2">I have kids</span>
+            </label>
+          </div>
+          <div className="flex items-center">
+            <label className="inline-flex items-center">
+              <input
+                type="checkbox"
+                checked={trunkPreference}
+                onChange={(e) => setTrunkPreference(e.target.checked)}
+                className="form-checkbox"
+              />
+              <span className="ml-2">Need ample trunk space</span>
+            </label>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        {/* Map & Instructions */}
+        <div className="mb-6">
+          <p className="text-center text-gray-600 mb-4">
+            Tap or click on the map to set your locations in the following
+            order:
+          </p>
+          <ol className="list-decimal list-inside text-gray-700 mb-4">
+            <li>House</li>
+            <li>Workplace / Daily Commute</li>
+            <li>Holidays / Distant Places</li>
+          </ol>
+          <Map onLocationsSelect={handleLocationsSelect} />
+        </div>
+        {error && (
+          <p className="text-center text-red-600 font-semibold mb-4">{error}</p>
+        )}
+        {result && (
+          <div className="mt-8 p-6 border-t">
+            <h2 className="text-2xl font-bold text-center mb-4">
+              Recommendation Summary
+            </h2>
+            <p className="mb-4 text-gray-800">{result.summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-semibold text-xl mb-2 text-center">
+                  Primary Option
+                </h3>
+                <p>
+                  Name:{" "}
+                  <span className="font-medium">{result.primary.name}</span>
+                </p>
+                <p>
+                  Type:{" "}
+                  <span className="font-medium capitalize">
+                    {result.primary.type}
+                  </span>
+                </p>
+                <p>
+                  Range:{" "}
+                  <span className="font-medium">{result.primary.range} km</span>
+                </p>
+                <p>
+                  Seating Capacity:{" "}
+                  <span className="font-medium">{result.primary.seats}</span>
+                </p>
+                <p>
+                  Price Estimate:{" "}
+                  <span className="font-medium">
+                    ${result.priceBreakdown.primary.toFixed(2)}
+                  </span>
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-semibold text-xl mb-2 text-center">
+                  Runner-Up Option
+                </h3>
+                <p>
+                  Name:{" "}
+                  <span className="font-medium">{result.runnerUp.name}</span>
+                </p>
+                <p>
+                  Type:{" "}
+                  <span className="font-medium capitalize">
+                    {result.runnerUp.type}
+                  </span>
+                </p>
+                <p>
+                  Range:{" "}
+                  <span className="font-medium">
+                    {result.runnerUp.range} km
+                  </span>
+                </p>
+                <p>
+                  Seating Capacity:{" "}
+                  <span className="font-medium">{result.runnerUp.seats}</span>
+                </p>
+                <p>
+                  Price Estimate:{" "}
+                  <span className="font-medium">
+                    ${result.priceBreakdown.runnerUp.toFixed(2)}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 text-center">
+              <p className="text-lg font-medium">Environmental Rating:</p>
+              <p className="text-2xl">
+                {"★".repeat(result.carbonRating)}
+                {"☆".repeat(5 - result.carbonRating)}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
