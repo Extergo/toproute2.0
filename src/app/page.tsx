@@ -1,5 +1,5 @@
-// src/app/page.tsx
 "use client";
+
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import {
@@ -19,7 +19,6 @@ export default function HomePage() {
   const [result, setResult] = useState<RecommendationResult | null>(null);
   const [error, setError] = useState<string>("");
 
-  // Use the full locations object to avoid unused variable warnings.
   const handleLocationsSelect = (locations: {
     house: { lat: number; lng: number };
     workplace: { lat: number; lng: number };
