@@ -135,7 +135,7 @@ export default function HomePage() {
                   <strong>Seating Capacity:</strong> {result.primary.seats}
                 </p>
                 <p>
-                  <strong>Price Estimate:</strong> $
+                  <strong>Estimated Travel Cost:</strong> $
                   {result.priceBreakdown.primary.toFixed(2)}
                 </p>
               </div>
