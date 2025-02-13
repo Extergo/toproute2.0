@@ -1,3 +1,4 @@
+// src/app/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -43,13 +44,14 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-r from-blue-100 to-green-100 flex flex-col items-center p-6">
-      <div className="max-w-3xl w-full bg-white shadow-lg rounded-lg p-8">
-        <h1 className="text-4xl font-bold text-center mb-8">
+    <main className="flex-grow flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8">
+        <h1 className="text-4xl font-bold text-center mb-6">
           Advanced Vehicle Recommender
         </h1>
+
         {/* User Preferences */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label className="block text-gray-700 font-medium mb-2">
               Minimum Seats Needed
@@ -58,46 +60,51 @@ export default function HomePage() {
               type="number"
               min="1"
               value={minSeats}
-              onChange={(e) => setMinSeats(parseInt(e.target.value, 10))}
+              onChange={(e) => {
+                const parsed = parseInt(e.target.value, 10);
+                setMinSeats(isNaN(parsed) ? 1 : parsed);
+              }}
               className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex items-center">
-            <label className="inline-flex items-center">
+            <label className="inline-flex items-center text-gray-700">
               <input
                 type="checkbox"
                 checked={hasKids}
                 onChange={(e) => setHasKids(e.target.checked)}
-                className="form-checkbox"
+                className="form-checkbox h-5 w-5 text-blue-600"
               />
               <span className="ml-2">I have kids</span>
             </label>
           </div>
           <div className="flex items-center">
-            <label className="inline-flex items-center">
+            <label className="inline-flex items-center text-gray-700">
               <input
                 type="checkbox"
                 checked={trunkPreference}
                 onChange={(e) => setTrunkPreference(e.target.checked)}
-                className="form-checkbox"
+                className="form-checkbox h-5 w-5 text-blue-600"
               />
               <span className="ml-2">Need ample trunk space</span>
             </label>
           </div>
         </div>
+
         {/* Map & Instructions */}
         <div className="mb-6">
-          <p className="text-center text-gray-600 mb-4">
-            Tap or click on the map to set your locations in the following
-            order:
+          <p className="text-center text-gray-600 mb-3">
+            Tap or click on the map to set your locations in this order:
           </p>
-          <ol className="list-decimal list-inside text-gray-700 mb-4">
+          <ol className="list-decimal list-inside text-gray-700 mb-4 text-center">
             <li>House</li>
             <li>Workplace / Daily Commute</li>
             <li>Holidays / Distant Places</li>
           </ol>
           <Map onLocationsSelect={handleLocationsSelect} />
         </div>
+
+        {/* Error & Results */}
         {error && (
           <p className="text-center text-red-600 font-semibold mb-4">{error}</p>
         )}
@@ -107,68 +114,57 @@ export default function HomePage() {
               Recommendation Summary
             </h2>
             <p className="mb-4 text-gray-800">{result.summary}</p>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Primary Option */}
               <div className="p-4 border rounded-lg bg-gray-50">
                 <h3 className="font-semibold text-xl mb-2 text-center">
                   Primary Option
                 </h3>
                 <p>
-                  Name:{" "}
-                  <span className="font-medium">{result.primary.name}</span>
+                  <strong>Name:</strong> {result.primary.name}
                 </p>
                 <p>
-                  Type:{" "}
-                  <span className="font-medium capitalize">
-                    {result.primary.type}
-                  </span>
+                  <strong>Type:</strong>{" "}
+                  <span className="capitalize">{result.primary.type}</span>
                 </p>
                 <p>
-                  Range:{" "}
-                  <span className="font-medium">{result.primary.range} km</span>
+                  <strong>Range:</strong> {result.primary.range} km
                 </p>
                 <p>
-                  Seating Capacity:{" "}
-                  <span className="font-medium">{result.primary.seats}</span>
+                  <strong>Seating Capacity:</strong> {result.primary.seats}
                 </p>
                 <p>
-                  Price Estimate:{" "}
-                  <span className="font-medium">
-                    ${result.priceBreakdown.primary.toFixed(2)}
-                  </span>
+                  <strong>Price Estimate:</strong> $
+                  {result.priceBreakdown.primary.toFixed(2)}
                 </p>
               </div>
+
+              {/* Runner-Up Option */}
               <div className="p-4 border rounded-lg bg-gray-50">
                 <h3 className="font-semibold text-xl mb-2 text-center">
                   Runner-Up Option
                 </h3>
                 <p>
-                  Name:{" "}
-                  <span className="font-medium">{result.runnerUp.name}</span>
+                  <strong>Name:</strong> {result.runnerUp.name}
                 </p>
                 <p>
-                  Type:{" "}
-                  <span className="font-medium capitalize">
-                    {result.runnerUp.type}
-                  </span>
+                  <strong>Type:</strong>{" "}
+                  <span className="capitalize">{result.runnerUp.type}</span>
                 </p>
                 <p>
-                  Range:{" "}
-                  <span className="font-medium">
-                    {result.runnerUp.range} km
-                  </span>
+                  <strong>Range:</strong> {result.runnerUp.range} km
                 </p>
                 <p>
-                  Seating Capacity:{" "}
-                  <span className="font-medium">{result.runnerUp.seats}</span>
+                  <strong>Seating Capacity:</strong> {result.runnerUp.seats}
                 </p>
                 <p>
-                  Price Estimate:{" "}
-                  <span className="font-medium">
-                    ${result.priceBreakdown.runnerUp.toFixed(2)}
-                  </span>
+                  <strong>Estimated Travel Cost:</strong> $
+                  {result.priceBreakdown.runnerUp.toFixed(2)}
                 </p>
               </div>
             </div>
+
             <div className="mt-6 text-center">
               <p className="text-lg font-medium">Environmental Rating:</p>
               <p className="text-2xl">

@@ -1,10 +1,13 @@
 // src/app/layout.tsx
 import "../../styles/globals.css";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Advanced Vehicle Recommender",
   description:
-    "Select your locations and preferences to get advanced vehicle recommendations with price breakdowns and environmental ratings.",
+    "A Next.js app that recommends vehicles based on user preferences.",
 };
 
 export default function RootLayout({
@@ -14,7 +17,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body
+        className={`
+          ${inter.className}
+          bg-gradient-to-r from-blue-200 to-green-200
+          min-h-screen
+          flex flex-col
+        `}
+      >
+        {children}
+      </body>
     </html>
   );
 }
